@@ -13,6 +13,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      overflow: hidden;
     }
     .container {
       background: white;
@@ -22,6 +23,8 @@
       width: 100%;
       max-width: 400px;
       text-align: center;
+      position: relative;
+      z-index: 2;
     }
     .logo {
       max-width: 150px;
@@ -61,20 +64,80 @@
     button:hover {
       background-color: #00205b;
     }
-    #output {
-      margin-top: 20px;
-      color: #333;
-      font-size: 14px;
-    }
     .footer {
       margin-top: 20px;
       font-size: 12px;
       color: #666;
     }
+    .warning-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      font-family: 'Courier New', monospace;
+      color: #ff0000;
+      background-image: repeating-linear-gradient(
+        45deg,
+        #000 0px,
+        #000 20px,
+        #ffff00 20px,
+        #ffff00 40px
+      );
+      background-size: 56px 56px;
+    }
+    .warning-box {
+      background: #1a1a1a;
+      padding: 20px;
+      border: 2px solid #ff0000;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    }
+    .warning-box h3 {
+      font-size: 2em;
+      text-transform: uppercase;
+      animation: flash 0.5s infinite;
+    }
+    .warning-box p {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    .warning-sign {
+      width: 100px;
+      height: 100px;
+      background-image: url('https://via.placeholder.com/100x100?text=Warning+Sign');
+      background-size: cover;
+      margin: 10px auto;
+    }
+    @keyframes flash {
+      50% {
+        opacity: 0;
+      }
+    }
+    .matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.2;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <canvas id="matrix" class="matrix"></canvas>
+  <div class="container" id="loginContainer">
     <img src="bank.jpg" alt="First Trust Bank Logo" class="logo">
     <h2>Welcome to First Trust Bank</h2>
     <div class="form-group">
@@ -85,25 +148,58 @@
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="Enter your password" required>
     </div>
-    <button onclick="displayCredentials()">Log In</button>
-    <div id="output"></div>
+    <button onclick="displayWarning()">Log In</button>
     <div class="footer">
       <p>Secure Banking | © 2025 First Trust Bank</p>
     </div>
   </div>
+  <div class="warning-overlay" id="warningOverlay">
+    <div class="warning-box">
+      <div class="warning-sign"></div>
+      <h3>Account Compromised!!!!!</h3>
+      <p>Your account has been compromised. Contact support immediately.</p>
+      <div class="warning-sign"></div>
+    </div>
+  </div>
 
   <script>
-    function displayCredentials() {
+    function displayWarning() {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
-      const output = document.getElementById('output');
+      const loginContainer = document.getElementById('loginContainer');
+      const warningOverlay = document.getElementById('warningOverlay');
       
       if (username && password) {
-        output.innerHTML = `<p>Username: ${username}</p><p>Password: ${password}</p>`;
+        loginContainer.classList.add('hidden');
+        warningOverlay.style.display = 'flex';
       } else {
-        output.innerHTML = `<p style="color: red;">Please enter both username and password.</p>`;
+        alert('Please enter both username and password.');
       }
     }
+
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+    for (let x = 0; x < columns; x++) drops[x] = 1;
+
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ff0000';
+      ctx.font = fontSize + 'px monospace';
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+    setInterval(draw, 33);
   </script>
 </body>
 </html>
